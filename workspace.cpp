@@ -7,12 +7,14 @@
 
 #include "workspace.h"
 #include <iostream>
+#include "clangindex.h"
 
 using namespace std;
 
 namespace MatEdit {
 
-Workspace::Workspace() {
+Workspace::Workspace():
+	clangIndex(new ClangIndex){
 	projectPaths.push_back("/home/mattias/testma/");
 }
 

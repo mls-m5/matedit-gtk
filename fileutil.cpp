@@ -20,7 +20,10 @@ FileUtil::FileUtil() {
 FileUtil::~FileUtil() {
 }
 
-std::list<ustring> FileUtil::getAllFilesRecursive(ustring path) {
+std::list<ustring> FileUtil::getAllFilesRecursive(ustring path, int depth) {
+	if (depth > 10) {
+		return {};
+	}
 	DIR *directory;
 	std::list<ustring> result;
 	struct dirent *ent;
@@ -28,7 +31,16 @@ std::list<ustring> FileUtil::getAllFilesRecursive(ustring path) {
 		/* print all the files and directories within directory */
 		while ((ent = readdir (directory)) != NULL) {
 //			printf ("%s\n", ent->d_name);
-			if (isFilteredFile(ent->d_name)) {
+			if (ent->d_type == DT_DIR) {
+				ustring name = ent->d_name;
+				if (name == ".." or name == ".") {
+					continue;
+				}
+				auto subResult = getAllFilesRecursive(path + "/" + name + "/", depth + 1);
+				result.splice(result.end(), subResult);
+
+			}
+			else if (isFilteredFile(ent->d_name)) {
 				result.push_back(path + ent->d_name);
 			}
 		}

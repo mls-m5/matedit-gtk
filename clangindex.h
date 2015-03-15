@@ -10,12 +10,15 @@
 #include <list>
 #include <glibmm.h>
 #include <gtksourceviewmm.h>
+#include <memory>
 
 namespace MatEdit {
 
 using Glib::ustring;
 using std::list;
 using Glib::RefPtr;
+
+class ClangIndexData;
 
 class ClangIndex {
 public:
@@ -29,6 +32,8 @@ public:
 	};
 
 	list<CompletionResult> getCompletion(ustring word, class Document *, Gsv::Buffer::iterator location);
+
+	std::unique_ptr<ClangIndexData> _data;
 };
 
 } /* namespace MatEdit */

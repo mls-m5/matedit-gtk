@@ -49,7 +49,7 @@ protected:
 
 	void onCompletionFinished(Glib::ustring completeon);
 	CompletionWindow _completeWindow;
-	Gsv::View *_currentView;
+	Document *_currentDocument;
 	std::list<shared_ptr<Document>> _documentList;
 
 	Workspace _workspace;

@@ -18,7 +18,7 @@ public:
 	FileUtil();
 	virtual ~FileUtil();
 
-	std::list<ustring> getAllFilesRecursive(ustring path);
+	std::list<ustring> getAllFilesRecursive(ustring path, int depth = 0);
 	ustring stripDirectoryNames(ustring path);
 
 	bool isFilteredFile(Glib::ustring path);

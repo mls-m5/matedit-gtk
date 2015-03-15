@@ -45,15 +45,15 @@ public:
 		return _buffer;
 	}
 
-protected:
-
-
 	enum class Mode {
 		Normal,
 		Insert
 	} mode = Mode::Normal;
 
 	void setMode(Mode m);
+
+protected:
+
 
 	void toggleHeader();
 

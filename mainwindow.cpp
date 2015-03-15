@@ -56,11 +56,11 @@ void MainWindow::showResourceDialog() {
 
 
 void MainWindow::onCompletionFinished(Glib::ustring completeon) {
-	if (not _currentView) return;
+	if (not _currentDocument) return;
 	cout << "mainwindow incomming completion: " << completeon << endl;
 
-	auto buffer = _currentView->get_buffer();
-
+	auto currentView = _currentDocument->sourceView();
+	auto buffer = currentView->get_buffer();
 
 	auto end = buffer->get_iter_at_mark(buffer->get_insert());
 
@@ -80,6 +80,8 @@ void MainWindow::onCompletionFinished(Glib::ustring completeon) {
 	}
 	buffer->erase(iter, end);
 	buffer->insert_at_cursor(completeon);
+
+	_currentDocument->setMode(Document::Mode::Insert);
 }
 
 
@@ -87,9 +89,9 @@ void MainWindow::onCompletionFinished(Glib::ustring completeon) {
 
 void MainWindow::tryComplete(Document* document) {
 	cout << "completion" << endl;
-	_currentView = document->sourceView();
-	auto buffer = _currentView->get_source_buffer();
-//	RefPtr<Gsv::Buffer> buffer = sourceView->get_source_buffer();
+	_currentDocument = document;
+	auto currentView = document->sourceView();
+	auto buffer = currentView->get_source_buffer();
 
 	auto end = buffer->get_iter_at_mark(buffer->get_insert());
 
@@ -107,9 +109,9 @@ void MainWindow::tryComplete(Document* document) {
 		}
 
 		Gdk::Rectangle location;
-		_currentView->get_iter_location(end, location);
+		currentView->get_iter_location(end, location);
 		int x, y;
-		_currentView->buffer_to_window_coords(Gtk::TextWindowType::TEXT_WINDOW_WIDGET, location.get_x(), location.get_y() + location.get_height(), x, y);
+		currentView->buffer_to_window_coords(Gtk::TextWindowType::TEXT_WINDOW_WIDGET, location.get_x(), location.get_y() + location.get_height(), x, y);
 		int winX, winY;
 		this->get_position(winX, winY);
 		x += winX;
@@ -173,7 +175,7 @@ void MatEdit::MainWindow::closeDocument(Document* document) {
 			return;
 		}
 	}
-	if (_currentView == document->sourceView()) {
-		_currentView = nullptr;
+	if (_currentDocument == document) {
+		_currentDocument = nullptr;
 	}
 }

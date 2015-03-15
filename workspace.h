@@ -8,6 +8,7 @@
 #pragma once
 #include <list>
 #include <glibmm.h>
+#include <memory>
 
 #include "console.h"
 namespace MatEdit {
@@ -25,6 +26,7 @@ public:
 	Console _console;
 
 
+	std::unique_ptr<class ClangIndex> clangIndex;
 
 };
 

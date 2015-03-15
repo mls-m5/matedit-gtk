@@ -9,10 +9,12 @@
 
 #include <gtksourceviewmm.h>
 #include <gtkmm.h>
+#include <memory>
 
 namespace MatEdit {
 
 using Glib::ustring;
+using Glib::RefPtr;
 
 
 class CompletionWindow: public Gtk::Window {
@@ -22,25 +24,35 @@ public:
 	Glib::ustring getCompletionResult();
 
 	//Tree model columns:
-	class ModelColumns: public Gtk::TreeModel::ColumnRecord {
-	public:
-		ModelColumns() {
-			add (_colId);
-			add (_colName);
-			add (_colDescription);
-		}
-
-		Gtk::TreeModelColumn<unsigned int> _colId;
-		Gtk::TreeModelColumn<Glib::ustring> _colName;
-		Gtk::TreeModelColumn<Glib::ustring> _colDescription;
-		Gtk::TreeModelColumn<bool> _visible;
-	};
 
 	sigc::signal<void, Glib::ustring> completedSignal() {
 		return _completedSignal;
 	}
 
-	void populate();
+	class CompletionRow: public Gtk::HBox {
+	public:
+		CompletionRow(ustring name, ustring description):
+			_name(name),
+			_description(description),
+			_nameLabel(name),
+			_descriptionLabel(description){
+			add(_nameLabel);
+			add(_descriptionLabel);
+			_nameLabel.set_alignment(0, .5);
+		}
+
+		ustring &name() {
+			return _name;
+		}
+
+	protected:
+		ustring _name;
+		ustring _description;
+
+		Gtk::Label _nameLabel;
+		Gtk::Label _descriptionLabel;
+	};
+
 	void completeSymbol(Glib::ustring name, Glib::RefPtr<Gsv::Buffer>& buffer, Gsv::Buffer::iterator location);
 	void completeSymbol(ustring currentWord, class Document *document, Gsv::Buffer::iterator location);
 	void addRow(Glib::ustring name, Glib::ustring description);
@@ -49,13 +61,11 @@ public:
 
 	void textChanged();
 
-	ModelColumns _columns;
-
 	Gtk::VBox _layout;
 	Gtk::Entry _textEntry;
 	Gtk::ScrolledWindow _scrolledWindow;
-	Gtk::TreeView _treeView;
-	Glib::RefPtr<Gtk::ListStore> _treeModel;
+	Gtk::VBox _listLayout;
+	std::list<std::shared_ptr<CompletionRow>> _listContent;
 
 	sigc::signal<void, Glib::ustring> _completedSignal;
 	int _size = 0;

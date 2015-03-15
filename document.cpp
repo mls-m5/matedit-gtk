@@ -315,6 +315,9 @@ void Document::setStyle() {
 	_buffer->set_highlight_syntax(true);
 	_buffer->set_highlight_matching_brackets(true);
 
+	_source.set_tab_width(2);
+	_source.set_show_line_numbers(true);
+
 	const string font_description_string("mono, medium, 10");
 
 	_source.override_font(Pango::FontDescription(font_description_string));

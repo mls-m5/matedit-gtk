@@ -13,20 +13,32 @@
 using namespace std;
 using Glib::ustring;
 
-MatEdit::ClangIndex::ClangIndex() {
+namespace MatEdit {
+struct ClangIndexData {
+
+	CXIndex index;
+};
+
+}
+
+#define dcout if(0) cout
+
+MatEdit::ClangIndex::ClangIndex():
+	_data(new ClangIndexData){
+	_data->index = clang_createIndex(1,1);
+
 }
 
 MatEdit::ClangIndex::~ClangIndex() {
+	clang_disposeIndex(_data->index);
 }
 
 list<MatEdit::ClangIndex::CompletionResult> MatEdit::ClangIndex::getCompletion(ustring word, Document *document,
 		Gsv::Buffer::iterator location) {
 	list<CompletionResult> returnList;
 
-	//Todo: Make sure to cache index between calls
+	auto index = _data->index;
 
-	auto index = clang_createIndex(1,1);
-	//Todo: parse unsaved documents
 	CXUnsavedFile unsavedFile;
 	auto buffer = document->buffer();
 	ustring fileContent = buffer->get_text(false);
@@ -35,10 +47,14 @@ list<MatEdit::ClangIndex::CompletionResult> MatEdit::ClangIndex::getCompletion(u
 	unsavedFile.Contents = fileContent.data();
 	unsavedFile.Length = fileContent.size();
 
+	auto standardArg = "-std=c++11";
+	const char* args[] = {standardArg};
+	int argCount = 1;
+
 	CXUnsavedFile unsavedFiles[] = {unsavedFile}; //In plural :)
 	int unsavedFilesCount = 1;
 
-	auto translationUnit = clang_parseTranslationUnit(index, document->currentFilename().c_str(), 0,0, unsavedFiles, unsavedFilesCount, clang_defaultEditingTranslationUnitOptions());
+	auto translationUnit = clang_parseTranslationUnit(index, document->currentFilename().c_str(), args,1, unsavedFiles, unsavedFilesCount, clang_defaultEditingTranslationUnitOptions());
 
 	{
 		int line = location.get_line() + 1; //To match clang style
@@ -50,7 +66,7 @@ list<MatEdit::ClangIndex::CompletionResult> MatEdit::ClangIndex::getCompletion(u
 			return {};
 		}
 
-		cout << "completions: (comparing to " << word << ")" << endl;
+		dcout << "completions: (comparing to " << word << ")" << endl;
 		for (int i = 0; i < result->NumResults; ++i) {
 			auto completion = result->Results[i].CompletionString;
 			ustring description;
@@ -65,18 +81,18 @@ list<MatEdit::ClangIndex::CompletionResult> MatEdit::ClangIndex::getCompletion(u
 					auto cString = clang_getCString(text);
 					ustring uText = cString;
 //					if (not uText.empty()) {// and uText.find(word) != string::npos) {
-						cout << uText << " (" << kind << ") ";
+						dcout << uText << " (" << kind << ") ";
 						description += (uText + " ");
 						if (kind == CXCompletionChunk_TypedText ) {
 							completionString = uText;
 //							returnList.push_back(uText);
-							cout << " (<-completion text)";
+							dcout << " (<-completion text)";
 						}
 //					}
 				}
 				clang_disposeString(text);
 			}
-			cout << endl;
+			dcout << endl;
 //			if (completionString.find(word) != string::npos) { //depending on desired behaviour
 			if (completionString.find(word) == 0) { //Match beginning of string
 				returnList.push_back({completionString, description});
@@ -86,11 +102,11 @@ list<MatEdit::ClangIndex::CompletionResult> MatEdit::ClangIndex::getCompletion(u
 		clang_disposeCodeCompleteResults(result);
 	}
 
-	cout << "compared to " << word << endl;
+	dcout << "compared to " << word << endl;
 
 	clang_disposeTranslationUnit(translationUnit);
 
-	clang_disposeIndex(index);
+
 
 	return returnList;
 }
