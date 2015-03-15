@@ -25,6 +25,7 @@
 									<listOptionValue builtIn="false" value="/usr/include/gtkmm-3.0"/>
 									<listOptionValue builtIn="false" value="/usr/include/glibmm-2.4"/>
 									<listOptionValue builtIn="false" value="/usr/include/gtksourceviewmm-3.0"/>
+									<listOptionValue builtIn="false" value="/usr/lib/llvm-3.4/include/"/>
 								</option>
 								<inputType id="cdt.managedbuild.tool.gnu.cpp.compiler.input.564243900" superClass="cdt.managedbuild.tool.gnu.cpp.compiler.input"/>
 							</tool>

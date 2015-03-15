@@ -41,7 +41,11 @@ void MainWindow::showResourceDialog() {
 
 	for (auto &it : _workspace.projectPaths) {
 		auto result = util.getAllFilesRecursive(it);
-		w->addContent(result);
+		auto filenamesOnly = result;
+		for (auto &it: filenamesOnly) {
+			it = util.stripDirectoryNames(it);
+		}
+		w->addContentList(filenamesOnly, result, result);
 	}
 	w->selectedSignal().connect(
 			sigc::mem_fun(this, &MainWindow::openFile) );
@@ -53,7 +57,7 @@ void MainWindow::showResourceDialog() {
 
 void MainWindow::onCompletionFinished(Glib::ustring completeon) {
 	if (not _currentView) return;
-	cout << "mainwindow incomming completeon" << completeon << endl;
+	cout << "mainwindow incomming completion: " << completeon << endl;
 
 	auto buffer = _currentView->get_buffer();
 
@@ -65,7 +69,8 @@ void MainWindow::onCompletionFinished(Glib::ustring completeon) {
 
 		while (iter != buffer->begin()) {
 			auto c = buffer->get_text(iter, end, false)[0];
-			if (c == ' ' or c == '\t' or c == '\n'){
+//			auto c = iter.get_char(); //does not work... dont know just why
+			if (c == ' ' or c == '\t' or c == '\n' or c == '.' or c == ':'){
 				++iter;
 				break;
 			}
@@ -80,10 +85,11 @@ void MainWindow::onCompletionFinished(Glib::ustring completeon) {
 
 
 
-void MainWindow::tryComplete(Gsv::View* sourceView) {
+void MainWindow::tryComplete(Document* document) {
 	cout << "completion" << endl;
-	_currentView = sourceView;
-	RefPtr<Gsv::Buffer> buffer = sourceView->get_source_buffer();
+	_currentView = document->sourceView();
+	auto buffer = _currentView->get_source_buffer();
+//	RefPtr<Gsv::Buffer> buffer = sourceView->get_source_buffer();
 
 	auto end = buffer->get_iter_at_mark(buffer->get_insert());
 
@@ -92,7 +98,8 @@ void MainWindow::tryComplete(Gsv::View* sourceView) {
 
 		while (iter != buffer->begin()) {
 			auto c = buffer->get_text(iter, end, false)[0];
-			if (c == ' ' or c == '\t' or c == '\n'){
+//			auto c = iter.get_char(); //Dont work
+			if (c == ' ' or c == '\t' or c == '\n' or c == ':' or c == '.'){
 				++iter;
 				break;
 			}
@@ -100,19 +107,20 @@ void MainWindow::tryComplete(Gsv::View* sourceView) {
 		}
 
 		Gdk::Rectangle location;
-		sourceView->get_iter_location(end, location);
+		_currentView->get_iter_location(end, location);
 		int x, y;
-		sourceView->buffer_to_window_coords(Gtk::TextWindowType::TEXT_WINDOW_WIDGET, location.get_x(), location.get_y() + location.get_height(), x, y);
+		_currentView->buffer_to_window_coords(Gtk::TextWindowType::TEXT_WINDOW_WIDGET, location.get_x(), location.get_y() + location.get_height(), x, y);
 		int winX, winY;
 		this->get_position(winX, winY);
 		x += winX;
 		y += winY;
 
-		auto text = buffer->get_text(iter, end);
-		_completeWindow.completeSymbol(text, buffer);
+		auto currentWord = buffer->get_text(iter, end);
+//		_completeWindow.completeSymbol(text, buffer, end);
 		_completeWindow.move(x, y + 40); //This depends on decoration
 		_completeWindow.hide();
 		_completeWindow.show_all();
+		_completeWindow.completeSymbol(currentWord, document, iter);
 	}
 }
 

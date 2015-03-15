@@ -20,6 +20,7 @@ Workspace::~Workspace() {
 }
 
 void Workspace::makeProject() {
+	showConsole();
 	auto path = projectPaths.front();
 	auto f = path.rfind("/");
 	std::string dirName;
@@ -33,8 +34,14 @@ void Workspace::makeProject() {
 		cout << "Building" << endl;
 		cout << " --> " << cmd << endl;
 
-		system(cmd.c_str());
+		_console.clear();
+		_console.addText("building \n" + cmd + "\n ------- \n");
+		_console.executeCommand(cmd);
 	}
 }
 
 } /* namespace MatEdit */
+
+void MatEdit::Workspace::showConsole() {
+	_console.show_all();
+}

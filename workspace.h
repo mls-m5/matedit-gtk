@@ -9,6 +9,7 @@
 #include <list>
 #include <glibmm.h>
 
+#include "console.h"
 namespace MatEdit {
 
 class Workspace {
@@ -17,8 +18,13 @@ public:
 	virtual ~Workspace();
 
 	void makeProject();
+	void showConsole();
 
 	std::list<Glib::ustring> projectPaths;
+
+	Console _console;
+
+
 
 };
 

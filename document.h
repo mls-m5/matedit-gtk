@@ -40,6 +40,10 @@ public:
 	Gsv::View *sourceView() {
 		return &_source;
 	}
+	RefPtr<Gsv::Buffer> buffer() {
+
+		return _buffer;
+	}
 
 protected:
 

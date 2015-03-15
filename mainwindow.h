@@ -29,7 +29,7 @@ public:
 	}
 
 
-	void tryComplete(Gsv::View *);
+	void tryComplete(Document *);
 
 	void newDocument(ustring fname);
 

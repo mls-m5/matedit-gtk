@@ -44,8 +44,8 @@ SelectionWindow::~SelectionWindow() {
 
 } /* namespace MatEdit */
 
-void MatEdit::SelectionWindow::addContent(ustring content) {
-	std::shared_ptr<RowContent> label(new RowContent(content));
+void MatEdit::SelectionWindow::addContent(ustring content, ustring description, ustring response) {
+	std::shared_ptr<RowContent> label(new RowContent(content, description, response));
 
 	_contentList.push_back(label);
 	_listlayout.add(*label);
@@ -55,7 +55,7 @@ void MatEdit::SelectionWindow::textChanged() {
 	auto text = _textEntry.get_text();
 	for (auto it: _contentList) {
 		if (it) {
-			if (it->contentString().find(text) == string::npos) {
+			if (it->contentString().find(text) == string::npos) { // and it->contentDescription().find(text) == string::npos) {
 				it->hide();
 			}
 			else {
@@ -83,7 +83,7 @@ void MatEdit::SelectionWindow::selectCurrent() {
 		//select the first
 		if (it->is_visible()) {
 			cout << "valde " << it->contentString() << endl;
-			_selectedSignal.emit(it->contentString());
+			_selectedSignal.emit(it->response());
 			hide();
 			return;
 		}

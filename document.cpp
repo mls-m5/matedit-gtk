@@ -102,7 +102,7 @@ bool Document::onHandledKeyEvent(GdkEventKey* event)
 {
 	if (event->state & GDK_CONTROL_MASK) {
 		if (event->keyval == ' ') {
-			_rootWindow->tryComplete(&_source);
+			_rootWindow->tryComplete(this);
 
 			return true;
 		}
@@ -255,12 +255,6 @@ bool Document::onHandledKeyEvent(GdkEventKey* event)
 			while (iter.get_char() != '\n' and not iter.is_end()) {
 				iter.forward_char();
 			}
-//			int line = iter.get_line();
-//
-//			iter.forward_to_line_end();
-//			if (iter.get_line() > line) {
-//				iter.backward_char();
-//			}
 			moveMark(iter);
 			setMode(Mode::Insert);
 			_buffer->insert_at_cursor("\n" + intendation);
@@ -269,8 +263,11 @@ bool Document::onHandledKeyEvent(GdkEventKey* event)
 
 		case 'i':
 			setMode(Mode::Insert);
+			break;
 
 		}
+
+		_source.scroll_to(_buffer->get_insert());
 		return true;
 	}
 }
@@ -295,9 +292,6 @@ void Document::toggleHeader() {
 	}
 }
 
-bool Document::beforeKeyPress(GdkEventKey* event) {
-	cout << "before keypress" << event->keyval << endl;
-}
 
 void Document::setStyle() {
 	Glib::ustring file_path;
@@ -324,6 +318,7 @@ void Document::setStyle() {
 	const string font_description_string("mono, medium, 10");
 
 	_source.override_font(Pango::FontDescription(font_description_string));
+	Gdk::RGBA color("red");
 
 	_source.set_auto_indent(true);
 

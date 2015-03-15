@@ -1,14 +1,17 @@
 COMPILER=g++
 RUNSTRING=./${TARGET}
 
-OBJECTS=main.o mainwindow.o completionwindow.o document.o selectionwindow.o fileutil.o workspace.o
+OBJECTS=main.o mainwindow.o completionwindow.o document.o selectionwindow.o
+OBJECTS+= fileutil.o workspace.o console.o clangindex.o
 
 
 LIBS=-lgtksourceviewmm-3.0
 LIBS+= `pkg-config --libs gtkmm-3.0 gtksourceviewmm-3.0`
 LIBS+= completer.a
-FLAGS= -g -std=c++11
-FLAGS+=`pkg-config --cflags gtkmm-3.0 gtksourceviewmm-3.0` -fPIC
+LIBS+= /usr/lib/llvm-3.4/lib/libclang.so
+CXXFLAGS= -g -std=c++11
+CXXFLAGS+=`pkg-config --cflags gtkmm-3.0 gtksourceviewmm-3.0` -fPIC
+CXXFLAGS+= -I/usr/lib/llvm-3.4/include/
 
 TARGET=./matedit-gtk
 
@@ -17,9 +20,9 @@ all: .depend ${TARGET}
 
 #Calculating dependincies
 .depend: $(wildcard ./*.cpp ./*.h) Makefile
-	$(CXX) $(FLAGS) -MM *.cpp > ./.dependtmp
-	cat ./.dependtmp | sed 's/h$$/h \n\t \$(CXX) $$< -c $(FLAGS) -o $$@/' > ./.depend
-	rm ./.dependtmp
+	$(CXX) $(CXXFLAGS) -MM *.cpp > ./.depend
+#	cat ./.dependtmp | sed 's/h$$/h \n\t \$(CXX) $$< -c $(FLAGS) -o $$@/' > ./.depend
+#	rm ./.dependtmp
 
 ${TARGET}: ${OBJECTS}
 	${COMPILER} ${FLAGS} -o ${TARGET} ${OBJECTS} ${LIBS}

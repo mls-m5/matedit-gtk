@@ -10,13 +10,16 @@
 #include <glibmm.h>
 
 namespace MatEdit {
+using Glib::ustring;
 
 class FileUtil {
+
 public:
 	FileUtil();
 	virtual ~FileUtil();
 
-	std::list<Glib::ustring> getAllFilesRecursive(Glib::ustring path);
+	std::list<ustring> getAllFilesRecursive(ustring path);
+	ustring stripDirectoryNames(ustring path);
 
 	bool isFilteredFile(Glib::ustring path);
 

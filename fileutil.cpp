@@ -40,6 +40,14 @@ std::list<ustring> FileUtil::getAllFilesRecursive(ustring path) {
 	}
 }
 
+ustring FileUtil::stripDirectoryNames(ustring path) {
+	auto f = path.rfind('/');
+	if (f != string::npos and f < path.size()) {
+		return path.substr(f + 1, path.size() - f - 1);
+	}
+	return path;
+}
+
 bool FileUtil::isFilteredFile(Glib::ustring path) {
 	if (path == ".." or path == ".") {
 		return false;
