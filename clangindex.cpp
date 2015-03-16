@@ -9,6 +9,7 @@
 #include <clang-c/Index.h>
 #include <iostream>
 #include "document.h"
+#include "mainwindow.h"
 
 using namespace std;
 using Glib::ustring;
@@ -17,6 +18,7 @@ namespace MatEdit {
 struct ClangIndexData {
 
 	CXIndex index;
+
 };
 
 }
@@ -111,4 +113,63 @@ list<MatEdit::ClangIndex::CompletionResult> MatEdit::ClangIndex::getCompletion(u
 	return returnList;
 }
 
+void MatEdit::ClangIndex::gotoDefinition(class Document *document,
+		Gsv::Buffer::iterator location) {
+	auto index = _data->index;
 
+	CXUnsavedFile unsavedFile;
+	auto buffer = document->buffer();
+	ustring fileContent = buffer->get_text(false);
+	ustring documentFilename = document->currentFilename();
+	unsavedFile.Filename = documentFilename.data();
+	unsavedFile.Contents = fileContent.data();
+	unsavedFile.Length = fileContent.size();
+
+	auto standardArg = "-std=c++11";
+	const char* args[] = {standardArg};
+	int argCount = 1;
+
+	CXUnsavedFile unsavedFiles[] = {unsavedFile}; //In plural :)
+	int unsavedFilesCount = 1;
+
+	auto translationUnit = clang_parseTranslationUnit(index, document->currentFilename().c_str(), args,1, unsavedFiles, unsavedFilesCount, clang_defaultEditingTranslationUnitOptions());
+
+	auto file = clang_getFile(translationUnit, documentFilename.data());
+
+
+	auto cxLocation = clang_getLocation(translationUnit, file, location.get_line() + 1, location.get_line_offset() + 1);
+
+	auto cursor = clang_getCursor(translationUnit, cxLocation);
+
+	auto definition = clang_getCursorDefinition(cursor);
+
+	auto definitionLocation = clang_getCursorLocation(definition);
+
+	CXFile definitionFile;
+	unsigned definitionLine, definitionColumn, definitionOffset;
+	clang_getExpansionLocation(definitionLocation,
+	                                               &definitionFile,
+	                                               &definitionLine,
+	                                               &definitionColumn,
+	                                               &definitionOffset);
+
+
+	auto filename = clang_getFileName(definitionFile);
+	cout << "Definition" /*<< clang_getFileName(definitionFile)*/ << ":" << definitionLine << "," << definitionColumn << endl;
+
+	if (filename.data == 0) {
+		return;
+	}
+
+	document->rootWindow()->openLocation(clang_getCString(filename), definitionLine -1, definitionColumn - 1);
+	clang_disposeString(filename);
+//	document->gotoLocation(definitionLine - 1, definitionColumn - 1);
+
+	//	clang_getCursor()
+	//	clang_getCursorDefinition()
+
+
+	clang_disposeTranslationUnit(translationUnit);
+
+
+}

@@ -52,6 +52,12 @@ public:
 
 	void setMode(Mode m);
 
+	void gotoLocation(int line, int column = 0);
+
+	class MainWindow *rootWindow() {
+		return _rootWindow;
+	}
+
 protected:
 
 

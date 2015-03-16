@@ -23,10 +23,11 @@ public:
 
 	std::list<Glib::ustring> projectPaths;
 
+	class ClangIndex &clangIndex();
+
+protected:
 	Console _console;
-
-
-	std::unique_ptr<class ClangIndex> clangIndex;
+	std::unique_ptr<class ClangIndex> _clangIndex;
 
 };
 

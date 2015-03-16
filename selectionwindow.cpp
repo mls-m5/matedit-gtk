@@ -17,13 +17,15 @@ using std::endl;
 namespace MatEdit {
 
 
-SelectionWindow::SelectionWindow() {
+SelectionWindow::SelectionWindow(ustring title) {
 
 	_layout.add(_textEntry);
 	_layout.add(_listlayout);
 
 	_textEntry.signal_changed().connect(
 			sigc::mem_fun(this, &SelectionWindow::textChanged) );
+
+	set_title(title);
 
 	auto delFun = [this] () {
 		delete this;

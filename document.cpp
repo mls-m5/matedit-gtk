@@ -5,8 +5,6 @@
  *      Author: Mattias Larsson Sköld
  */
 
-#include "document.h"
-#include "mainwindow.h"
 
 
 #include "gtksourceviewmm/styleschememanager.h"
@@ -14,6 +12,10 @@
 #include <iostream>
 #include <fstream>
 #include <pangomm-1.4/pangomm.h>
+
+#include "document.h"
+#include "mainwindow.h"
+#include "clangindex.h"
 
 using Glib::ustring;
 using namespace std;
@@ -100,6 +102,9 @@ void Document::setMode(Mode m) {
 
 bool Document::onHandledKeyEvent(GdkEventKey* event)
 {
+
+	auto iter = _buffer->get_iter_at_mark(_buffer->get_insert());
+
 	if (event->state & GDK_CONTROL_MASK) {
 		if (event->keyval == ' ') {
 			_rootWindow->tryComplete(this);
@@ -112,6 +117,10 @@ bool Document::onHandledKeyEvent(GdkEventKey* event)
 		}
 		else if (event->keyval == 'o') {
 			tryOpen();
+			return true;
+		}
+		else if (event->keyval == 'e') {
+			_rootWindow->showSelectFileDialog();
 			return true;
 		}
 		else if (event->keyval == 'd') {
@@ -142,7 +151,10 @@ bool Document::onHandledKeyEvent(GdkEventKey* event)
 	if (event->keyval == GDK_KEY_F11) {
 		trySave();
 		_rootWindow->workspace().makeProject();
-
+	}
+	else if(event->keyval == GDK_KEY_F3) {
+		_rootWindow->workspace().clangIndex().gotoDefinition(this, iter);
+		return true;
 	}
 
 	auto getIntendation = [this](Gtk::TextIter iter) {
@@ -170,10 +182,10 @@ bool Document::onHandledKeyEvent(GdkEventKey* event)
 	auto moveMark = [this](Gtk::TextIter iter) {
 		_buffer->move_mark(_buffer->get_selection_bound(), iter);
 		_buffer->move_mark(_buffer->get_insert(), iter);
+		_source.scroll_to(_buffer->get_insert());
 	};
 
 
-	auto iter = _buffer->get_iter_at_mark(_buffer->get_insert());
 	if (mode == Mode::Insert) {
 		if (event->keyval == GDK_KEY_Escape) {
 			setMode(Mode::Normal);
@@ -267,7 +279,6 @@ bool Document::onHandledKeyEvent(GdkEventKey* event)
 
 		}
 
-		_source.scroll_to(_buffer->get_insert());
 		return true;
 	}
 }
@@ -435,3 +446,12 @@ void Document::textChanged() {
 }
 
 } /* namespace MatEdit */
+
+void MatEdit::Document::gotoLocation(int line, int column) {
+	auto iter = _buffer->get_iter_at_line(line);
+	iter.set_line_offset(column);
+
+	_buffer->move_mark(_buffer->get_selection_bound(), iter);
+	_buffer->move_mark(_buffer->get_insert(), iter);
+	_source.scroll_to(_buffer->get_insert(), .2);
+}

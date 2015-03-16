@@ -31,7 +31,7 @@ MainWindow::MainWindow(){
 }
 
 void MainWindow::showResourceDialog() {
-	auto w = new SelectionWindow();
+	auto selectionWindow = new SelectionWindow("open resource");
 	FileUtil util;
 	util.addFilter(".cpp");
 	util.addFilter(".h");
@@ -43,13 +43,28 @@ void MainWindow::showResourceDialog() {
 		auto result = util.getAllFilesRecursive(it);
 		auto filenamesOnly = result;
 		for (auto &it: filenamesOnly) {
-			it = util.stripDirectoryNames(it);
+			it = FileUtil::stripDirectoryNames(it);
 		}
-		w->addContentList(filenamesOnly, result, result);
+		selectionWindow->addContentList(filenamesOnly, result, result);
 	}
-	w->selectedSignal().connect(
+	selectionWindow->selectedSignal().connect(
 			sigc::mem_fun(this, &MainWindow::openFile) );
-	w->show_all();
+	selectionWindow->show_all();
+}
+
+void MainWindow::showSelectFileDialog() {
+	auto selectionWindow = new SelectionWindow("select open file");
+
+	for (auto it: _documentList) {
+		ustring path = it->currentFilename();
+		ustring shortFilename = FileUtil::stripDirectoryNames(path);
+		selectionWindow->addContent(shortFilename, path, path);
+	}
+
+	selectionWindow->selectedSignal().connect(
+			sigc::mem_fun(this, &MainWindow::openFile) );
+	selectionWindow->show_all();
+
 }
 
 
@@ -120,7 +135,7 @@ void MainWindow::tryComplete(Document* document) {
 		auto currentWord = buffer->get_text(iter, end);
 //		_completeWindow.completeSymbol(text, buffer, end);
 		_completeWindow.move(x, y + 40); //This depends on decoration
-		_completeWindow.hide();
+		_completeWindow.hide(); //Move to front
 		_completeWindow.show_all();
 		_completeWindow.completeSymbol(currentWord, document, iter);
 	}
@@ -142,22 +157,25 @@ void MatEdit::MainWindow::newDocument(Glib::ustring fname) {
 			title = title.substr(f + 1, title.size() - f + 1);
 		}
 	}
-	_notebookLayout.append_page(*document, title);
+	int pageNum =_notebookLayout.append_page(*document, title);
 
 	document->show_all();
 
-	_notebookLayout.set_current_page(_notebookLayout.get_n_pages() - 1);
+	_notebookLayout.set_current_page(pageNum);
 }
 
 
 
 
-void MatEdit::MainWindow::openFile(ustring fname) {
+void MatEdit::MainWindow::openLocation(ustring fname, int line, int column) {
 	int i = 0;
 	for (auto it: _notebookLayout.get_children()) {
 		auto document = dynamic_cast<Document*>(it);
 		if (document->currentFilename() == fname) {
 			_notebookLayout.set_current_page(i);
+			if (line > -1) {
+				document->gotoLocation(line, column);
+			}
 			return;
 		}
 		++i;

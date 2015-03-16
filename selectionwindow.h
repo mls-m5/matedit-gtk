@@ -18,7 +18,8 @@ using Glib::ustring;
 
 class SelectionWindow: public Gtk::Window {
 public:
-	SelectionWindow();
+	//Note: the window deletes itself when hidden
+	SelectionWindow(ustring title = "selection");
 	virtual ~SelectionWindow();
 
 

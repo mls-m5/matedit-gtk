@@ -32,11 +32,14 @@ public:
 	void tryComplete(Document *);
 
 	void newDocument(ustring fname);
-
-	void openFile(ustring fname);
+	void openLocation(ustring fname, int line, int column = 0);
+	void openFile(ustring fname) {
+		openLocation(fname, -1);
+	}
 	void closeDocument(Document *document);
 
 	void showResourceDialog();
+	void showSelectFileDialog();
 	
 	Workspace &workspace() {
 		return _workspace;

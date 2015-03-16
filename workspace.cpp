@@ -14,7 +14,7 @@ using namespace std;
 namespace MatEdit {
 
 Workspace::Workspace():
-	clangIndex(new ClangIndex){
+	_clangIndex(new ClangIndex){
 	projectPaths.push_back("/home/mattias/testma/");
 }
 
@@ -40,6 +40,10 @@ void Workspace::makeProject() {
 		_console.addText("building \n" + cmd + "\n ------- \n");
 		_console.executeCommand(cmd);
 	}
+}
+
+class ClangIndex& Workspace::clangIndex() {
+	return *_clangIndex;
 }
 
 } /* namespace MatEdit */
